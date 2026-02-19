@@ -30,7 +30,6 @@ function parseAnswerString(answerStr) {
     return { structured: null, plainText: answerStr };
   }
 }
-
 function StructuredResponse({ structured, plainText }) {
   if (!structured) {
     return <p className="text-gray-200 text-sm leading-relaxed">{plainText}</p>;
@@ -82,11 +81,8 @@ function StructuredResponse({ structured, plainText }) {
     </div>
   );
 }
-
-// Suggestion chips rendered below the last AI message
 function SuggestionChips({ suggestions, onSelect }) {
   if (!suggestions?.length) return null;
-
   return (
     <div className="flex flex-wrap gap-2 mt-3 pl-1">
       {suggestions.map((s, i) => (
@@ -101,7 +97,6 @@ function SuggestionChips({ suggestions, onSelect }) {
     </div>
   );
 }
-
 export default function App() {
   const [query, setquery] = useState("");
   const [chat, setChat] = useState([]);
@@ -125,10 +120,8 @@ export default function App() {
 
       const { structured, plainText } = parseAnswerString(data?.answer ?? "");
 
-      // Extract suggestions from structured JSON
       const suggestions = structured?.suggestions ?? [];
 
-      // Remove suggestions from structured before passing to renderer
       const cleanStructured = structured
         ? { ...structured, suggestions: undefined }
         : null;
