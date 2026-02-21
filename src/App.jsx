@@ -102,6 +102,8 @@ export default function App() {
   const [chat, setChat] = useState([]);
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
+  const [selectedModel, setSelectedModel] = useState("emo-4-scout");
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -115,7 +117,7 @@ export default function App() {
     setquery("");
 
     try {
-      const resp = await axios.post("http://127.0.0.1:8000/api/v1/yt_chat", { question });
+      const resp = await axios.post("http://127.0.0.1:8000/api/v1/yt_chat", { question ,model: selectedModel});
       const data = resp?.data;
 
       const { structured, plainText } = parseAnswerString(data?.answer ?? "");
@@ -152,97 +154,147 @@ export default function App() {
     }
   };
 
+  const handleSelectModel = () => {
+  // use selectedModel here when making the API call
+  console.log("Using model:", selectedModel);
+};
+
+const models = [
+  { value: "emo-4-scout", label: "emo-scout" },
+  { value: "emo-oss", label: "emo-oss" },
+];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl h-[600px] bg-gray-950 shadow-2xl rounded-2xl flex flex-col overflow-hidden">
+  <div className="min-h-screen min-h-dvh bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-0 sm:p-4">
+  <div className="
+    w-full max-w-3xl bg-gray-950 shadow-2xl flex flex-col
+    h-screen sm:h-[600px] md:h-[680px]
+    rounded-none sm:rounded-2xl
+  ">
 
-        {/* Header */}
-        <div className="bg-gray-900 px-6 py-4 border-b border-gray-800">
-          <h1 className="text-xl font-semibold text-white tracking-wide">
-            Emo YouTube Assistant
-          </h1>
+    {/* Header */}
+    <div className="bg-gray-900 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-800 shrink-0">
+      <h1 className="text-base sm:text-lg font-semibold text-white tracking-wide">
+        Emo YouTube Agent
+      </h1>
+    </div>
+
+    {/* Chat Area */}
+    <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 space-y-3 bg-gray-950 min-h-0">
+
+      {chat.length === 0 && (
+        <div className="flex items-center justify-center h-full text-gray-600 text-sm text-center px-4">
+          Ask something about your videos...
         </div>
+      )}
 
-        {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gray-950">
+      {chat.map((msg, index) => {
+        const isLastAI = msg.role === "ai" && index === chat.length - 1;
 
-          {chat.length === 0 && (
-            <div className="flex items-center justify-center h-full text-gray-600 text-sm">
-              Ask something about your videos...
-            </div>
-          )}
-
-          {chat.map((msg, index) => {
-            const isLastAI = msg.role === "ai" && index === chat.length - 1;
-
-            return (
-              <div key={index}>
-                <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[85%] px-4 py-1.5 rounded-xl text-sm ${
-                      msg.role === "user"
-                        ? "bg-green-600 text-white"
-                        : "bg-gray-800 text-gray-100"
-                    }`}
-                  >
-                    {msg.role === "ai" ? (
-                      <StructuredResponse structured={msg.structured} plainText={msg.plainText} />
-                    ) : (
-                      msg.text
-                    )}
-                  </div>
-                </div>
-
-                {/* Show suggestion chips only below the last AI message and not while loading */}
-                {isLastAI && !loading && (
-                  <SuggestionChips
-                    suggestions={msg.suggestions}
-                    onSelect={handleChipClick}
-                  />
+        return (
+          <div key={index}>
+            <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`max-w-[90%] sm:max-w-[85%] px-3 sm:px-4 py-2 rounded-xl text-sm ${
+                  msg.role === "user"
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-800 text-gray-100"
+                }`}
+              >
+                {msg.role === "ai" ? (
+                  <StructuredResponse structured={msg.structured} plainText={msg.plainText} />
+                ) : (
+                  msg.text
                 )}
               </div>
-            );
-          })}
-
-          {loading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-800 px-4 py-3 rounded-xl">
-                <div className="flex gap-1.5 items-center">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-bounce [animation-delay:0ms]" />
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-bounce [animation-delay:150ms]" />
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-bounce [animation-delay:300ms]" />
-                </div>
-              </div>
             </div>
-          )}
 
-          <div ref={bottomRef} />
+            {isLastAI && !loading && (
+              <SuggestionChips
+                suggestions={msg.suggestions}
+                onSelect={handleChipClick}
+              />
+            )}
+          </div>
+        );
+      })}
+
+      {loading && (
+        <div className="flex justify-start">
+          <div className="bg-gray-800 px-4 py-3 rounded-xl">
+            <div className="flex gap-1.5 items-center">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-bounce [animation-delay:0ms]" />
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-bounce [animation-delay:150ms]" />
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-bounce [animation-delay:300ms]" />
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* Input */}
-        <div className="p-4 border-t border-gray-800 flex items-end gap-2 bg-gray-900">
-          <textarea
-            rows={1}
-            placeholder="Ask something about videos... (Enter to send)"
-            value={query}
-            onChange={(e) => {
-              setquery(e.target.value);
-              e.target.style.height = "auto";
-              e.target.style.height = e.target.scrollHeight + "px";
-            }}
-            onKeyDown={handleKeyDown}
-            className="flex-1 px-3 py-2 rounded-lg bg-gray-800 text-white outline-none resize-none overflow-hidden focus:ring-2 focus:ring-green-500 max-h-40"
-          />
-          <button
-            onClick={handleAsk}
-            disabled={loading || !query.trim()}
-            className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-white transition"
-          >
-            Ask
-          </button>
-        </div>
-
-      </div>
+      <div ref={bottomRef} />
     </div>
+
+   <div className="px-3 sm:px-4 pt-2 pb-3 sm:pb-4 border-t border-gray-800 flex flex-col gap-2 bg-gray-900 shrink-0">
+  
+  
+
+  {/* Input Row */}
+  <div className="flex items-end gap-2">
+    {/* Model Selector */}
+  {/* Custom Dropdown - opens upward */}
+<div className="relative">
+
+  {/* Options - positioned above */}
+  {isOpen && (
+    <div className="absolute bottom-full mb-1 left-0 right-0 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden z-10 shadow-lg">
+      {models.map((m) => (
+        <div
+          key={m.value}
+          onClick={() => { setSelectedModel(m.value); setIsOpen(false); }}
+          className={`px-3 py-1.5 text-xs cursor-pointer transition hover:bg-gray-700 ${
+            selectedModel === m.value ? "text-green-400" : "text-gray-300"
+          }`}
+        >
+          {m.label}
+        </div>
+      ))}
+    </div>
+  )}
+
+  {/* Trigger Button */}
+  <button
+    onClick={() => setIsOpen(!isOpen)}
+    className="w-full flex items-center justify-between gap-1 text-xs bg-gray-800 text-gray-300 rounded-lg px-2 py-2 outline-none focus:ring-1 focus:ring-green-500 hover:bg-gray-700 transition"
+  >
+    <span>{models.find(m => m.value === selectedModel)?.label}</span>
+    <span className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>▾</span>
+  </button>
+
+</div>
+    <textarea
+      rows={1}
+      placeholder="Ask something..."
+      value={query}
+      onChange={(e) => {
+        setquery(e.target.value);
+        e.target.style.height = "auto";
+        e.target.style.height = e.target.scrollHeight + "px";
+      }}
+      onKeyDown={handleKeyDown}
+      className="flex-1 px-3 py-2 rounded-lg bg-gray-800 text-white text-xs outline-none resize-none overflow-hidden focus:ring-2 focus:ring-green-500 max-h-32 sm:max-h-40"
+    />
+    <button
+      onClick={handleAsk}
+      disabled={loading || !query.trim()}
+      className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed px-3 sm:px-4 py-2 rounded-lg text-white text-xs transition shrink-0"
+    >
+      Ask
+    </button>
+  </div>
+
+</div>
+
+  </div>
+</div>
   );
 }
