@@ -347,7 +347,6 @@ const SparkleIcon = () => (
   </svg>
 );
 
-/* ─── Typing Indicator ────────────────────────────────────────── */
 function TypingDots() {
   return (
     <div style={{display:"flex",alignItems:"center",gap:5,padding:"2px 0"}}>
@@ -361,7 +360,6 @@ function TypingDots() {
   );
 }
 
-/* ─── Structured Response ─────────────────────────────────────── */
 function StructuredResponse({ structured, plainText }) {
   if (!structured) return <p style={{color:"#d0d0d0",fontSize:13,lineHeight:1.65}}>{plainText}</p>;
   const { main_heading, sections } = structured;
